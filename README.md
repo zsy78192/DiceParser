@@ -25,6 +25,9 @@ swift/
 
 ## 安装和构建
 
+### GitHub仓库地址
+GitHub: https://github.com/zsy78192/DiceParser.git
+
 ### 方法1：使用Swift Package Manager
 
 ```bash
@@ -44,6 +47,14 @@ swift run
 ```bash
 cd swift
 swift test
+```
+
+### 方法4：通过Swift Package Manager安装
+
+在您的`Package.swift`中添加：
+
+```swift
+.package(url: "https://github.com/zsy78192/DiceParser.git", from: "1.0.0")
 ```
 
 ## 使用方法
