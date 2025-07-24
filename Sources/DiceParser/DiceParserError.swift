@@ -1,7 +1,7 @@
 import Foundation
 
 /// 骰子解析器错误枚举
-enum DiceParserError: Error, LocalizedError {
+public enum DiceParserError: Error, LocalizedError {
     case emptyExpression
     case invalidOperatorCombination
     case invalidDiceFaces
@@ -10,7 +10,7 @@ enum DiceParserError: Error, LocalizedError {
     case diceCountExceeded
     case invalidExpression
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .emptyExpression:
             return "请输入表达式"

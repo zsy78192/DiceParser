@@ -1,13 +1,13 @@
 import Foundation
 
 /// 表达式解析功能扩展
-extension DiceParser {
+public extension DiceParser {
     
     /// 解析骰子表达式
     /// - Parameter expression: 骰子表达式字符串
     /// - Returns: 令牌数组
     /// - Throws: 解析错误
-    func parseExpression(_ expression: String) throws -> [String] {
+    public func parseExpression(_ expression: String) throws -> [String] {
         guard !expression.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw DiceParserError.emptyExpression
         }

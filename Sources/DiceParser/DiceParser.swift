@@ -1,13 +1,16 @@
 import Foundation
 
 /// 骰子解析器主类
-class DiceParser {
+public class DiceParser {
     
     /// 骰子投掷结果记录
-    internal var rolls: [DiceRollResult] = []
+    public internal(set) var rolls: [DiceRollResult] = []
+    
+    /// 初始化解析器
+    public init() {}
     
     /// 重置解析器状态
-    internal func reset() {
+    public func reset() {
         rolls.removeAll()
     }
 }

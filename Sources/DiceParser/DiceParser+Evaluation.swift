@@ -1,13 +1,13 @@
 import Foundation
 
 /// 表达式计算功能扩展
-extension DiceParser {
+public extension DiceParser {
     
     /// 计算骰子表达式
     /// - Parameter expr: 要计算的表达式字符串
     /// - Returns: 包含投掷结果、步骤和最终值的字典
     /// - Throws: 计算错误
-    func evaluateExpression(_ expr: String) throws -> [String: Any] {
+    public func evaluateExpression(_ expr: String) throws -> [String: Any] {
         reset()
         
         let tokens: [String]
