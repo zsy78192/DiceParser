@@ -33,7 +33,12 @@ func printUsage() {
 /// 格式化输出结果
 func formatResult(_ result: [String: Any]) {
     if let finalResult = result["finalResult"] as? Double {
-        print("\n🎯 最终结果: \(Int(finalResult))")
+        // 如果是整数，显示为整数；如果是小数，保留小数部分
+        if finalResult == floor(finalResult) {
+            print("\n🎯 最终结果: \(Int(finalResult))")
+        } else {
+            print("\n🎯 最终结果: \(finalResult)")
+        }
     }
 
     if let steps = result["steps"] as? String {

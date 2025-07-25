@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:dice_parser}",
+            "name": "Debug DiceParserCLI",
+            "program": "${workspaceFolder:dice_parser}/.build/debug/DiceParserCLI",
+            "preLaunchTask": "swift: Build Debug DiceParserCLI"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:dice_parser}",
+            "name": "Release DiceParserCLI",
+            "program": "${workspaceFolder:dice_parser}/.build/release/DiceParserCLI",
+            "preLaunchTask": "swift: Build Release DiceParserCLI"
+        }
+    ]
+}

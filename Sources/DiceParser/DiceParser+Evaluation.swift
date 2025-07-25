@@ -42,6 +42,10 @@ extension DiceParser {
                 // 纯数字
                 evalExpr += String(number)
                 steps += String(number)
+            } else if let number = Double(token) {
+                // 浮点数
+                evalExpr += String(number)
+                steps += token  // 保持原格式显示
             } else {
                 // 运算符
                 if !["+", "-", "*", "/", "(", ")"].contains(token) {
@@ -56,12 +60,12 @@ extension DiceParser {
                 let nextToken = tokens[i + 1]
                 let isCurrentDiceOrNumber =
                     token.contains("d") || token.contains("Adv") || token.contains("Dis")
-                    || Int(token) != nil
+                    || Int(token) != nil || Double(token) != nil
                 let isNextOperator = ["+", "-", "*", "/", "(", ")"].contains(nextToken)
                 let isCurrentOperator = ["+", "-", "*", "/", "(", ")"].contains(token)
                 let isNextDiceOrNumber =
                     nextToken.contains("d") || nextToken.contains("Adv")
-                    || nextToken.contains("Dis") || Int(nextToken) != nil
+                    || nextToken.contains("Dis") || Int(nextToken) != nil || Double(nextToken) != nil
 
                 // 总是在运算符前后添加空格，除了括号
                 if ["+", "-", "*", "/"].contains(token) || ["+", "-", "*", "/"].contains(nextToken)
@@ -226,11 +230,16 @@ extension DiceParser {
 
         // 验证表达式格式
         try validateMathExpression(cleanExpr)
+        
+        // 预处理表达式以确保浮点数除法
+        let processedExpr = preprocessForFloatingPointDivision(cleanExpr)
 
         // 使用NSExpression计算，添加异常捕获
         do {
-            let expression = NSExpression(format: cleanExpr)
-            guard let result = expression.expressionValue(with: nil, context: nil) as? NSNumber
+            let expression = NSExpression(format: processedExpr)
+            let object: Any? = nil
+            let context: NSMutableDictionary? = nil
+            guard let result = expression.expressionValue(with: object, context: context) as? NSNumber
             else {
                 throw DiceParserError.mathExpressionError("无法计算表达式结果")
             }
@@ -268,7 +277,7 @@ extension DiceParser {
     /// - Throws: 如果表达式格式无效则抛出错误
     private func validateMathExpression(_ expression: String) throws {
         // 检查是否包含无效字符
-        let validPattern = "^[0-9+\\-*/() ]+$"
+        let validPattern = "^[0-9+\\-*/().\\s]+$"
         guard expression.range(of: validPattern, options: .regularExpression) != nil else {
             throw DiceParserError.invalidExpression
         }
@@ -316,5 +325,29 @@ extension DiceParser {
         if expression.contains("()") {
             throw DiceParserError.invalidExpression
         }
+    }
+    
+    /// 预处理表达式以确保浮点数除法
+    /// - Parameter expression: 原始表达式
+    /// - Returns: 预处理后的表达式
+    private func preprocessForFloatingPointDivision(_ expression: String) -> String {
+        // 如果表达式已经包含小数点，则不需要预处理
+        if expression.contains(".") {
+            return expression
+        }
+        
+        // 将整数转换为浮点数以确保浮点除法
+        // 例如：7/2 -> 7.0/2.0
+        var result = expression
+        
+        // 使用正则表达式找到所有整数并添加.0
+        let integerPattern = "\\b(\\d+)\\b"
+        result = result.replacingOccurrences(
+            of: integerPattern,
+            with: "$1.0",
+            options: .regularExpression
+        )
+        
+        return result
     }
 }
