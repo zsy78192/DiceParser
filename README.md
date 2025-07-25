@@ -1,6 +1,8 @@
 # Swift骰子表达式解析器
 
-这是一个用Swift实现的骰子表达式解析器，完整复现了JavaScript版本的所有功能。
+这是一个用Swift实现的骰子表达式解析器，完整复现了JavaScript版本的所有功能。提供了两个产品：
+- **DiceParser库** - 可供其他项目导入和使用的核心库
+- **DiceParserCLI** - 命令行工具，用于直接执行骰子表达式
 
 ## 功能特性
 
@@ -11,16 +13,23 @@
 - ✅ 错误处理和验证
 - ✅ 详细的投掷记录
 - ✅ 完整的单元测试
+- ✅ 作为库供其他项目使用
 
-## 文件结构
+## 项目结构
 
 ```
-swift/
-├── Package.swift          # Swift包配置文件
-├── DiceParser.swift       # 核心解析器类
-├── DiceParserTests.swift  # 单元测试
-├── main.swift            # 演示程序
-└── README.md             # 说明文档
+├── Package.swift                  # Swift包配置文件
+├── Sources/
+│   ├── DiceParser/               # 核心库
+│   │   ├── DiceParser.swift      # 主解析器类
+│   │   ├── DiceParser+*.swift    # 扩展功能
+│   │   ├── DiceParserError.swift # 错误定义
+│   │   └── DiceRollResult.swift  # 结果结构
+│   └── DiceParserCLI/           # CLI工具
+│       └── main.swift           # 命令行程序
+├── Tests/
+│   └── DiceParserTests/         # 单元测试
+└── README.md                    # 说明文档
 ```
 
 ## 安装和构建
@@ -28,69 +37,109 @@ swift/
 ### GitHub仓库地址
 GitHub: https://github.com/zsy78192/DiceParser.git
 
-### 方法1：使用Swift Package Manager
+### 方法1：使用Swift Package Manager构建
 
 ```bash
-cd swift
 swift build
 ```
 
-### 方法2：直接运行
+### 方法2：运行CLI工具
 
 ```bash
-cd swift
-swift run
+swift run DiceParserCLI "2d6 + 3"
+swift run DiceParserCLI "Adv(d20) + 5"
 ```
 
 ### 方法3：运行测试
 
 ```bash
-cd swift
 swift test
 ```
 
-### 方法4：通过Swift Package Manager安装
+### 方法4：作为库使用
 
-在您的`Package.swift`中添加：
+在您的`Package.swift`中添加依赖：
 
 ```swift
-.package(url: "https://github.com/zsy78192/DiceParser.git", from: "1.0.0")
+dependencies: [
+    .package(url: "https://github.com/zsy78192/DiceParser.git", from: "1.0.0")
+],
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: ["DiceParser"]),
+]
 ```
 
 ## 使用方法
 
-### 命令行使用（推荐）
+### 1. 命令行使用
 
 #### 基本命令
 ```bash
-cd swift
-swift run DiceParser "2d6 + 3"
+swift run DiceParserCLI "2d6 + 3"
 ```
 
 #### 示例
 ```bash
 # 简单骰子投掷
-swift run DiceParser "d20"
+swift run DiceParserCLI "d20"
 
 # 多个骰子加修饰符
-swift run DiceParser "3d6 + 5"
+swift run DiceParserCLI "3d6 + 5"
 
 # 优势投掷
-swift run DiceParser "Adv(d20)"
+swift run DiceParserCLI "Adv(d20)"
 
 # 劣势投掷
-swift run DiceParser "Dis(d6)"
+swift run DiceParserCLI "Dis(d6)"
 
 # 复杂表达式
-swift run DiceParser "(2d6 + d4) * 2"
+swift run DiceParserCLI "(2d6 + d4) * 2"
 
 # 百分骰
-swift run DiceParser "d100 + 20"
+swift run DiceParserCLI "d100 + 20"
 ```
 
 #### 查看帮助
 ```bash
-swift run DiceParser --help
+swift run DiceParserCLI --help
+```
+
+### 2. 作为库使用
+
+在您的Swift代码中导入和使用：
+
+```swift
+import DiceParser
+
+let parser = DiceParser()
+
+do {
+    let result = try parser.evaluateExpression("2d6 + 3")
+    
+    // 获取最终结果
+    if let finalResult = result["finalResult"] as? Double {
+        print("结果: \(Int(finalResult))")
+    }
+    
+    // 获取计算步骤
+    if let steps = result["steps"] as? String {
+        print("步骤: \(steps)")
+    }
+    
+    // 获取骰子投掷详情
+    if let rolls = result["rolls"] as? [[String: Any]] {
+        print("投掷详情:")
+        for roll in rolls {
+            print(roll)
+        }
+    }
+} catch let error as DiceParserError {
+    print("错误: \(error.localizedDescription)")
+} catch {
+    print("未知错误: \(error)")
+}
 ```
 
 ### 程序化使用
@@ -124,15 +173,15 @@ do {
 
 ### 支持的表达式格式
 
-| 表达式 | 说明 |
-|--------|------|
-| `d6` | 投掷一个6面骰子 |
-| `2d6` | 投掷两个6面骰子 |
-| `d100` | 投掷百分骰 |
-| `Adv(d20)` | d20优势投掷（取最大值） |
-| `Dis(d6)` | d6劣势投掷（取最小值） |
-| `2d6 + 3` | 两个6面骰子加3 |
-| `(d6 + d8) * 2` | 括号内的计算 |
+| 表达式          | 说明                    |
+| --------------- | ----------------------- |
+| `d6`            | 投掷一个6面骰子         |
+| `2d6`           | 投掷两个6面骰子         |
+| `d100`          | 投掷百分骰              |
+| `Adv(d20)`      | d20优势投掷（取最大值） |
+| `Dis(d6)`       | d6劣势投掷（取最小值）  |
+| `2d6 + 3`       | 两个6面骰子加3          |
+| `(d6 + d8) * 2` | 括号内的计算            |
 
 ### 错误处理
 
@@ -168,13 +217,13 @@ swift run
 
 ## 与JavaScript版本的差异
 
-| 特性 | Swift版本 | JavaScript版本 |
-|------|-----------|----------------|
-| 随机数生成 | Swift原生 | Math.random() |
-| 数学计算 | NSExpression | math.js |
-| 错误处理 | Swift Error | JavaScript Error |
-| 测试框架 | XCTest | Jest |
-| 包管理 | Swift Package Manager | npm |
+| 特性       | Swift版本             | JavaScript版本   |
+| ---------- | --------------------- | ---------------- |
+| 随机数生成 | Swift原生             | Math.random()    |
+| 数学计算   | NSExpression          | math.js          |
+| 错误处理   | Swift Error           | JavaScript Error |
+| 测试框架   | XCTest                | Jest             |
+| 包管理     | Swift Package Manager | npm              |
 
 ## 示例输出
 

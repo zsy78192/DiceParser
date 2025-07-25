@@ -1,31 +1,33 @@
+import DiceParser
 import Foundation
 
 /// CLI骰子计算器程序入口点
-/// 
+///
 /// 使用方法:
-/// swift run DiceParser "2d6 + 3"
-/// swift run DiceParser "(5 + 3) * 2"
-/// swift run DiceParser "Adv(d20) + Dis(d6)"
+/// swift run DiceParserCLI "2d6 + 3"
+/// swift run DiceParserCLI "(5 + 3) * 2"
+/// swift run DiceParserCLI "Adv(d20) + Dis(d6)"
 
 /// 打印使用帮助
 func printUsage() {
-    print("""
-    🎲 骰子计算器 CLI
-    
-    使用方法:
-        swift run DiceParser <表达式>
-    
-    支持的表达式:
-        • 标准骰子: 2d6, d20, d100
-        • 优势/劣势: Adv(d20), Dis(d6)
-        • 数学运算: +, -, *, /
-        • 括号分组: (2d6 + 3) * 2
-    
-    示例:
-        swift run DiceParser "2d6 + 3"
-        swift run DiceParser "(5 + 3) * 2"
-        swift run DiceParser "Adv(d20) + Dis(d6) + 5"
-    """)
+    print(
+        """
+        🎲 骰子计算器 CLI
+
+        使用方法:
+            swift run DiceParserCLI <表达式>
+
+        支持的表达式:
+            • 标准骰子: 2d6, d20, d100
+            • 优势/劣势: Adv(d20), Dis(d6)
+            • 数学运算: +, -, *, /
+            • 括号分组: (2d6 + 3) * 2
+
+        示例:
+            swift run DiceParserCLI "2d6 + 3"
+            swift run DiceParserCLI "(5 + 3) * 2"
+            swift run DiceParserCLI "Adv(d20) + Dis(d6) + 5"
+        """)
 }
 
 /// 格式化输出结果
@@ -33,17 +35,17 @@ func formatResult(_ result: [String: Any]) {
     if let finalResult = result["finalResult"] as? Double {
         print("\n🎯 最终结果: \(Int(finalResult))")
     }
-    
+
     if let steps = result["steps"] as? String {
         print("📊 计算步骤: \(steps)")
     }
-    
+
     if let rolls = result["rolls"] as? [[String: Any]] {
         print("\n🎲 骰子结果:")
         for roll in rolls {
             if let type = roll["type"] as? String {
                 print("  \(type): ", terminator: "")
-                
+
                 if type == "d100" {
                     if let tens = roll["tens"] as? Int, let units = roll["units"] as? Int {
                         print("\(tens)0 + \(units) = \(tens * 10 + units)")
@@ -67,23 +69,23 @@ func formatResult(_ result: [String: Any]) {
 /// 主程序入口
 func main() {
     let arguments = CommandLine.arguments
-    
+
     // 检查参数
     if arguments.count < 2 {
         printUsage()
         exit(1)
     }
-    
+
     let expression = arguments[1]
-    
+
     // 处理特殊命令
     if expression == "--help" || expression == "-h" {
         printUsage()
         exit(0)
     }
-    
+
     let parser = DiceParser()
-    
+
     do {
         print("🎲 正在计算: \(expression)")
         let result = try parser.evaluateExpression(expression)
