@@ -15,23 +15,23 @@ public enum DiceParserError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .emptyExpression:
-            return "请输入表达式"
+            return "error.emptyExpression".localized()
         case .invalidOperatorCombination:
-            return "无效运算符组合"
+            return "error.invalidOperatorCombination".localized()
         case .invalidDiceFaces:
-            return "骰子面数需为1-1000"
+            return "error.invalidDiceFaces".localized()
         case .invalidCharacter(let char):
-            return "无效字符：\(char)"
+            return "error.invalidCharacter".localized(with: char)
         case .missingOperator:
-            return "请检查表达式格式（如 2d6 + d8）"
+            return "error.missingOperator".localized()
         case .diceCountExceeded:
-            return "骰子数量不能超过100"
+            return "error.diceCountExceeded".localized()
         case .invalidExpression:
-            return "无效表达式"
+            return "error.invalidExpression".localized()
         case .unmatchedParentheses:
-            return "括号不匹配"
+            return "error.unmatchedParentheses".localized()
         case .mathExpressionError(let details):
-            return "数学表达式计算错误：\(details)"
+            return "error.mathExpressionError".localized(with: details)
         }
     }
 }

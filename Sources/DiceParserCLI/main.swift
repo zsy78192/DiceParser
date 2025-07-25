@@ -16,6 +16,7 @@ func printUsage() {
 
         使用方法:
             swift run DiceParserCLI <表达式>
+            swift run DiceParserCLI --demo-localization
 
         支持的表达式:
             • 标准骰子: 2d6, d20, d100
@@ -27,6 +28,7 @@ func printUsage() {
             swift run DiceParserCLI "2d6 + 3"
             swift run DiceParserCLI "(5 + 3) * 2"
             swift run DiceParserCLI "Adv(d20) + Dis(d6) + 5"
+            swift run DiceParserCLI --demo-localization
         """)
 }
 
@@ -89,6 +91,11 @@ func main() {
         exit(0)
     }
 
+    if expression == "--demo-localization" {
+        LocalizationDemo.runDemo()
+        exit(0)
+    }
+
     let parser = DiceParser()
 
     do {
@@ -96,27 +103,7 @@ func main() {
         let result = try parser.evaluateExpression(expression)
         formatResult(result)
     } catch let error as DiceParserError {
-        print("❌ 错误: ", terminator: "")
-        switch error {
-        case .emptyExpression:
-            print("表达式不能为空")
-        case .invalidExpression:
-            print("无效的表达式")
-        case .invalidCharacter(let char):
-            print("无效字符: \(char)")
-        case .invalidDiceFaces:
-            print("骰子面数必须大于0")
-        case .diceCountExceeded:
-            print("骰子数量不能超过100个")
-        case .invalidOperatorCombination:
-            print("无效的运算符组合")
-        case .missingOperator:
-            print("缺少运算符")
-        case .unmatchedParentheses:
-            print("括号不匹配")
-        case .mathExpressionError(let details):
-            print("数学计算错误: \(details)")
-        }
+        print("❌ 错误: \(error.errorDescription ?? "未知错误")")
         exit(1)
     } catch {
         print("❌ 未知错误: \(error)")
