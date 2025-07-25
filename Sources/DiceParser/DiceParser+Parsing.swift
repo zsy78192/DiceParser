@@ -70,11 +70,12 @@ extension DiceParser {
 
         // 验证所有令牌
         for token in tokens {
-            let isValid = token.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil
+            let isValid =
+                token.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil
                 || token.range(of: "^\\d+(?:\\.\\d+)?$", options: .regularExpression) != nil
                 || token.range(of: "^(Adv|Dis)\\(d\\d+\\)$", options: .regularExpression) != nil
                 || token.range(of: "^[+\\-*/()]$", options: .regularExpression) != nil
-            
+
             if !isValid {
                 throw DiceParserError.invalidCharacter(token)
             }
@@ -100,9 +101,9 @@ extension DiceParser {
             }
         }
 
-                // 检查括号匹配
+        // 检查括号匹配
         try validateParentheses(tokens)
-        
+
         // 处理隐含乘法（如 8(4) -> 8*(4)）
         tokens = try insertImplicitMultiplication(tokens)
 
@@ -128,22 +129,22 @@ extension DiceParser {
             throw DiceParserError.unmatchedParentheses
         }
     }
-    
+
     /// 处理隐含乘法
     /// - Parameter tokens: 原始令牌数组
     /// - Returns: 插入了隐含乘法的令牌数组
     /// - Throws: 如果处理过程中发现错误
     private func insertImplicitMultiplication(_ tokens: [String]) throws -> [String] {
         var result: [String] = []
-        
+
         for i in 0..<tokens.count {
             let current = tokens[i]
             result.append(current)
-            
+
             // 检查是否需要插入隐含乘法
             if i < tokens.count - 1 {
                 let next = tokens[i + 1]
-                
+
                 // 情况1: 数字后跟左括号 (如 8()
                 if isNumber(current) && next == "(" {
                     result.append("*")
@@ -182,15 +183,15 @@ extension DiceParser {
                 }
             }
         }
-        
+
         return result
     }
-    
+
     /// 检查字符串是否为数字
     private func isNumber(_ token: String) -> Bool {
         return token.range(of: "^\\d+(?:\\.\\d+)?$", options: .regularExpression) != nil
     }
-    
+
     /// 检查字符串是否为骰子表达式
     private func isDiceExpression(_ token: String) -> Bool {
         return token.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil

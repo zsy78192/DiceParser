@@ -65,7 +65,8 @@ extension DiceParser {
                 let isCurrentOperator = ["+", "-", "*", "/", "(", ")"].contains(token)
                 let isNextDiceOrNumber =
                     nextToken.contains("d") || nextToken.contains("Adv")
-                    || nextToken.contains("Dis") || Int(nextToken) != nil || Double(nextToken) != nil
+                    || nextToken.contains("Dis") || Int(nextToken) != nil
+                    || Double(nextToken) != nil
 
                 // 总是在运算符前后添加空格，除了括号
                 if ["+", "-", "*", "/"].contains(token) || ["+", "-", "*", "/"].contains(nextToken)
@@ -230,7 +231,7 @@ extension DiceParser {
 
         // 验证表达式格式
         try validateMathExpression(cleanExpr)
-        
+
         // 预处理表达式以确保浮点数除法
         let processedExpr = preprocessForFloatingPointDivision(cleanExpr)
 
@@ -239,7 +240,8 @@ extension DiceParser {
             let expression = NSExpression(format: processedExpr)
             let object: Any? = nil
             let context: NSMutableDictionary? = nil
-            guard let result = expression.expressionValue(with: object, context: context) as? NSNumber
+            guard
+                let result = expression.expressionValue(with: object, context: context) as? NSNumber
             else {
                 throw DiceParserError.mathExpressionError("无法计算表达式结果")
             }
@@ -326,7 +328,7 @@ extension DiceParser {
             throw DiceParserError.invalidExpression
         }
     }
-    
+
     /// 预处理表达式以确保浮点数除法
     /// - Parameter expression: 原始表达式
     /// - Returns: 预处理后的表达式
@@ -335,11 +337,11 @@ extension DiceParser {
         if expression.contains(".") {
             return expression
         }
-        
+
         // 将整数转换为浮点数以确保浮点除法
         // 例如：7/2 -> 7.0/2.0
         var result = expression
-        
+
         // 使用正则表达式找到所有整数并添加.0
         let integerPattern = "\\b(\\d+)\\b"
         result = result.replacingOccurrences(
@@ -347,7 +349,7 @@ extension DiceParser {
             with: "$1.0",
             options: .regularExpression
         )
-        
+
         return result
     }
 }
