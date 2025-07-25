@@ -9,7 +9,9 @@ public enum DiceParserError: Error, LocalizedError {
     case missingOperator
     case diceCountExceeded
     case invalidExpression
-    
+    case unmatchedParentheses
+    case mathExpressionError(String)
+
     public var errorDescription: String? {
         switch self {
         case .emptyExpression:
@@ -26,6 +28,10 @@ public enum DiceParserError: Error, LocalizedError {
             return "骰子数量不能超过100"
         case .invalidExpression:
             return "无效表达式"
+        case .unmatchedParentheses:
+            return "括号不匹配"
+        case .mathExpressionError(let details):
+            return "数学表达式计算错误：\(details)"
         }
     }
 }

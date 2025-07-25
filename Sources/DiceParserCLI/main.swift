@@ -53,7 +53,7 @@ func formatResult(_ result: [String: Any]) {
                 } else if type.hasPrefix("Adv") || type.hasPrefix("Dis") {
                     if let rollsArray = roll["rolls"] as? [Int] {
                         let rollsStr = rollsArray.map { String($0) }.joined(separator: ", ")
-                        let selected = roll["selected"] as? Int ?? 0
+                        let selected = roll["value"] as? Int ?? 0
                         print("\(rollsStr) → \(selected)")
                     }
                 } else {
@@ -107,6 +107,10 @@ func main() {
             print("无效的运算符组合")
         case .missingOperator:
             print("缺少运算符")
+        case .unmatchedParentheses:
+            print("括号不匹配")
+        case .mathExpressionError(let details):
+            print("数学计算错误: \(details)")
         }
         exit(1)
     } catch {

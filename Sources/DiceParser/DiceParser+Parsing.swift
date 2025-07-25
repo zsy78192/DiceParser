@@ -1,8 +1,8 @@
 import Foundation
 
 /// 表达式解析功能扩展
-public extension DiceParser {
-    
+extension DiceParser {
+
     /// 解析骰子表达式
     /// - Parameter expression: 骰子表达式字符串
     /// - Returns: 令牌数组
@@ -11,31 +11,32 @@ public extension DiceParser {
         guard !expression.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw DiceParserError.emptyExpression
         }
-        
+
         let processedExpr = expression.replacingOccurrences(of: " ", with: "")
-        
+
         // 检查连续运算符
         let operatorPattern = "[+\\-*/]{2,}"
         if processedExpr.range(of: operatorPattern, options: .regularExpression) != nil {
             throw DiceParserError.invalidOperatorCombination
         }
-        
+
         // 使用正则表达式分割表达式
         let pattern = "(\\d*d\\d+|Adv\\(d\\d+\\)|Dis\\(d\\d+\\)|[+\\-*/()]|\\d+)"
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             throw DiceParserError.invalidExpression
         }
-        
-        let matches = regex.matches(in: processedExpr, range: NSRange(processedExpr.startIndex..., in: processedExpr))
+
+        let matches = regex.matches(
+            in: processedExpr, range: NSRange(processedExpr.startIndex..., in: processedExpr))
         var tokens: [String] = []
-        
+
         for match in matches {
             if let range = Range(match.range, in: processedExpr) {
                 let token = String(processedExpr[range])
                 tokens.append(token)
             }
         }
-        
+
         // 检查是否所有字符都被正确解析
         let totalTokenLength = tokens.reduce(0) { $0 + $1.count }
         if totalTokenLength != processedExpr.count {
@@ -45,7 +46,7 @@ public extension DiceParser {
                 let invalidChar = String(processedExpr[range])
                 throw DiceParserError.invalidCharacter(invalidChar)
             }
-            
+
             // 检查是否有未匹配的字母序列
             let letterPattern = "[A-Za-z]+"
             let letterMatches = processedExpr.matches(for: letterPattern)
@@ -56,17 +57,17 @@ public extension DiceParser {
                     throw DiceParserError.invalidCharacter(invalidChar)
                 }
             }
-            
+
             throw DiceParserError.invalidExpression
         }
-        
+
         // 检查纯字母字符串（如abc）
         for token in tokens {
             if token.range(of: "^[A-Za-z]+$", options: .regularExpression) != nil {
                 throw DiceParserError.invalidCharacter(token)
             }
         }
-        
+
         // 验证所有令牌
         let validPattern = "^(\\d*d\\d+|Adv\\(d\\d+\\)|Dis\\(d\\d+\\)|[+\\-*/()]|\\d+)$"
         for token in tokens {
@@ -74,26 +75,51 @@ public extension DiceParser {
                 throw DiceParserError.invalidCharacter(token)
             }
         }
-        
+
         // 检查是否缺少运算符
-        for i in 0..<tokens.count-1 {
+        for i in 0..<tokens.count - 1 {
             let current = tokens[i]
-            let next = tokens[i+1]
-            
-            let isCurrentOperand = current.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil || 
-                                 current.range(of: "^\\d+$", options: .regularExpression) != nil ||
-                                 current.range(of: "^(Adv|Dis)\\(d\\d+\\)$", options: .regularExpression) != nil
-            
-            let isNextOperand = next.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil || 
-                               next.range(of: "^\\d+$", options: .regularExpression) != nil ||
-                               next.range(of: "^(Adv|Dis)\\(d\\d+\\)$", options: .regularExpression) != nil
-            
+            let next = tokens[i + 1]
+
+            let isCurrentOperand =
+                current.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil
+                || current.range(of: "^\\d+$", options: .regularExpression) != nil
+                || current.range(of: "^(Adv|Dis)\\(d\\d+\\)$", options: .regularExpression) != nil
+
+            let isNextOperand =
+                next.range(of: "^\\d*d\\d+$", options: .regularExpression) != nil
+                || next.range(of: "^\\d+$", options: .regularExpression) != nil
+                || next.range(of: "^(Adv|Dis)\\(d\\d+\\)$", options: .regularExpression) != nil
+
             if isCurrentOperand && isNextOperand {
                 throw DiceParserError.missingOperator
             }
         }
-        
+
+        // 检查括号匹配
+        try validateParentheses(tokens)
+
         return tokens
+    }
+
+    /// 验证括号匹配
+    /// - Parameter tokens: 令牌数组
+    /// - Throws: 如果括号不匹配则抛出错误
+    private func validateParentheses(_ tokens: [String]) throws {
+        var stack = 0
+        for token in tokens {
+            if token == "(" {
+                stack += 1
+            } else if token == ")" {
+                stack -= 1
+                if stack < 0 {
+                    throw DiceParserError.unmatchedParentheses
+                }
+            }
+        }
+        if stack != 0 {
+            throw DiceParserError.unmatchedParentheses
+        }
     }
 }
 
