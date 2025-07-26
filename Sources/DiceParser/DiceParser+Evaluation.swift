@@ -29,8 +29,9 @@ extension DiceParser {
 
             // 检查标准骰子表达式
             if token.contains("d") && !token.contains("Adv") && !token.contains("Dis") {
-                evalExpr += try processStandardDice(token)
-                steps += "[\(getRollValues(for: token).map(String.init).joined(separator: "+"))]"
+                let (value, rollValues) = try processStandardDice(token)
+                evalExpr += value
+                steps += "[\(rollValues.map(String.init).joined(separator: "+"))]"
 
             } else if token.hasPrefix("Adv(") || token.hasPrefix("Dis(") {
                 // 优势/劣势骰子
@@ -118,7 +119,7 @@ extension DiceParser {
     }
 
     /// 处理标准骰子表达式
-    private func processStandardDice(_ token: String) throws -> String {
+    private func processStandardDice(_ token: String) throws -> (value: String, rollValues: [Int]) {
         let parts = token.components(separatedBy: "d")
         let countStr = parts[0].isEmpty ? "1" : parts[0]
         let facesStr = parts[1]
@@ -158,32 +159,8 @@ extension DiceParser {
             }
         }
 
-        return String(rollValues.reduce(0, +))
-    }
-
-    /// 获取骰子投掷值（用于步骤显示）
-    private func getRollValues(for token: String) -> [Int] {
-        let parts = token.components(separatedBy: "d")
-        let countStr = parts[0].isEmpty ? "1" : parts[0]
-        let facesStr = parts[1]
-
-        guard let count = Int(countStr), let faces = Int(facesStr) else {
-            return []
-        }
-
-        var rollValues: [Int] = []
-        if faces == 100 {
-            for _ in 0..<count {
-                let roll = rollD100()
-                rollValues.append(roll.value)
-            }
-        } else {
-            for _ in 0..<count {
-                rollValues.append(rollDie(faces: faces))
-            }
-        }
-
-        return rollValues
+        let totalValue = rollValues.reduce(0, +)
+        return (String(totalValue), rollValues)
     }
 
     /// 处理优势/劣势骰子

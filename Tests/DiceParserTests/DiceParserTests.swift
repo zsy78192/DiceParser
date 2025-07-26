@@ -353,6 +353,210 @@ class DiceParserTests: XCTestCase {
         // XCTAssertNotNil(result["rolls"])
         XCTAssertTrue(true)  // 占位符测试
     }
+
+    /// 测试计算结果和显示步骤的一致性（基本验证）
+    func testCalculationAndStepsBasicConsistency() throws {
+        // 测试标准骰子表达式的一致性
+        let result = try diceParser.evaluateExpression("d6")
+
+        let finalResult = result["finalResult"] as? Double
+        let steps = result["steps"] as? String
+        let rolls = result["rolls"] as? [[String: Any]]
+
+        // 验证基本结构
+        XCTAssertNotNil(finalResult)
+        XCTAssertNotNil(steps)
+        XCTAssertNotNil(rolls)
+
+        // 验证rolls数组包含一个d6投掷
+        XCTAssertEqual(rolls?.count, 1)
+        if let roll = rolls?.first {
+            XCTAssertEqual(roll["type"] as? String, "d6")
+            let rollValue = roll["value"] as? Int
+            XCTAssertNotNil(rollValue)
+
+            // 验证最终结果等于投掷值
+            XCTAssertEqual(finalResult, Double(rollValue!))
+
+            // 验证步骤中包含投掷值
+            XCTAssertTrue(steps?.contains("[\(rollValue!)]") ?? false)
+        }
+    }
+
+    /// 测试多个骰子的一致性
+    func testMultipleDiceConsistency() throws {
+        let result = try diceParser.evaluateExpression("2d6")
+
+        let finalResult = result["finalResult"] as? Double
+        let steps = result["steps"] as? String
+        let rolls = result["rolls"] as? [[String: Any]]
+
+        // 验证基本结构
+        XCTAssertNotNil(finalResult)
+        XCTAssertNotNil(steps)
+        XCTAssertNotNil(rolls)
+
+        // 验证rolls数组包含两个d6投掷
+        XCTAssertEqual(rolls?.count, 2)
+
+        // 计算投掷值的总和
+        var totalRollValue = 0
+        var rollValues: [Int] = []
+        for roll in rolls! {
+            if let value = roll["value"] as? Int {
+                totalRollValue += value
+                rollValues.append(value)
+            }
+        }
+
+        // 验证最终结果等于投掷值总和
+        XCTAssertEqual(finalResult, Double(totalRollValue))
+
+        // 验证步骤中包含所有投掷值
+        let expectedSteps = "[\(rollValues.map(String.init).joined(separator: "+"))]"
+        XCTAssertEqual(steps, expectedSteps)
+    }
+
+    /// 测试d100骰子的一致性
+    func testD100Consistency() throws {
+        let result = try diceParser.evaluateExpression("d100")
+
+        let finalResult = result["finalResult"] as? Double
+        let steps = result["steps"] as? String
+        let rolls = result["rolls"] as? [[String: Any]]
+
+        // 验证基本结构
+        XCTAssertNotNil(finalResult)
+        XCTAssertNotNil(steps)
+        XCTAssertNotNil(rolls)
+
+        // 验证rolls数组包含一个d100投掷
+        XCTAssertEqual(rolls?.count, 1)
+        if let roll = rolls?.first {
+            XCTAssertEqual(roll["type"] as? String, "d100")
+            let rollValue = roll["value"] as? Int
+            XCTAssertNotNil(rollValue)
+
+            // d100应该有tens和units属性
+            XCTAssertNotNil(roll["tens"])
+            XCTAssertNotNil(roll["units"])
+
+            // 验证最终结果等于投掷值
+            XCTAssertEqual(finalResult, Double(rollValue!))
+
+            // 验证步骤中包含投掷值
+            XCTAssertTrue(steps?.contains("[\(rollValue!)]") ?? false)
+        }
+    }
+
+    /// 测试优势骰子的一致性
+    func testAdvantageConsistency() throws {
+        let result = try diceParser.evaluateExpression("Adv(d20)")
+
+        let finalResult = result["finalResult"] as? Double
+        let steps = result["steps"] as? String
+        let rolls = result["rolls"] as? [[String: Any]]
+
+        // 验证基本结构
+        XCTAssertNotNil(finalResult)
+        XCTAssertNotNil(steps)
+        XCTAssertNotNil(rolls)
+
+        // 验证rolls数组包含一个优势投掷
+        XCTAssertEqual(rolls?.count, 1)
+        if let roll = rolls?.first {
+            XCTAssertEqual(roll["type"] as? String, "Adv(d20)")
+            let rollValue = roll["value"] as? Int
+            let rollsArray = roll["rolls"] as? [Int]
+
+            XCTAssertNotNil(rollValue)
+            XCTAssertNotNil(rollsArray)
+            XCTAssertEqual(rollsArray?.count, 2)
+
+            // 验证选择的是较大值
+            if let rolls = rollsArray {
+                XCTAssertEqual(rollValue, max(rolls[0], rolls[1]))
+            }
+
+            // 验证最终结果等于选择的值
+            XCTAssertEqual(finalResult, Double(rollValue!))
+
+            // 验证步骤格式正确
+            if let rolls = rollsArray {
+                let expectedPattern = "\\[\(rolls[0]),\(rolls[1])→\(rollValue!)\\]"
+                XCTAssertTrue(steps?.range(of: expectedPattern, options: .regularExpression) != nil)
+            }
+        }
+    }
+
+    /// 测试复合表达式的一致性
+    func testComplexExpressionConsistency() throws {
+        let result = try diceParser.evaluateExpression("d6 + 3")
+
+        let finalResult = result["finalResult"] as? Double
+        let steps = result["steps"] as? String
+        let rolls = result["rolls"] as? [[String: Any]]
+
+        // 验证基本结构
+        XCTAssertNotNil(finalResult)
+        XCTAssertNotNil(steps)
+        XCTAssertNotNil(rolls)
+
+        // 验证rolls数组包含一个d6投掷
+        XCTAssertEqual(rolls?.count, 1)
+        if let roll = rolls?.first {
+            let rollValue = roll["value"] as? Int
+            XCTAssertNotNil(rollValue)
+
+            // 验证最终结果 = 投掷值 + 3
+            XCTAssertEqual(finalResult, Double(rollValue! + 3))
+
+            // 验证步骤格式正确
+            let expectedSteps = "[\(rollValue!)] + 3"
+            XCTAssertEqual(steps, expectedSteps)
+        }
+    }
+
+    /// 测试修复前后一致性问题的回归测试
+    func testConsistencyRegressionTest() throws {
+        // 这个测试验证修复后计算结果和步骤显示的一致性
+        // 修复前：processStandardDice投掷一次，getRollValues又投掷一次，导致不一致
+        // 修复后：只投掷一次，计算和显示使用相同的结果
+
+        for _ in 0..<10 {  // 多次测试确保稳定性
+            let result = try diceParser.evaluateExpression("3d6")
+
+            let finalResult = result["finalResult"] as? Double
+            let steps = result["steps"] as? String
+            let rolls = result["rolls"] as? [[String: Any]]
+
+            // 验证基本结构
+            XCTAssertNotNil(finalResult)
+            XCTAssertNotNil(steps)
+            XCTAssertNotNil(rolls)
+
+            // 从rolls数组计算总和
+            var totalFromRolls = 0
+            var rollValues: [Int] = []
+            for roll in rolls! {
+                if let value = roll["value"] as? Int {
+                    totalFromRolls += value
+                    rollValues.append(value)
+                }
+            }
+
+            // 验证finalResult等于rolls数组中值的总和
+            XCTAssertEqual(
+                finalResult, Double(totalFromRolls),
+                "计算结果应该等于投掷值总和")
+
+            // 验证steps中显示的值与rolls数组中的值匹配
+            let expectedSteps = "[\(rollValues.map(String.init).joined(separator: "+"))]"
+            XCTAssertEqual(
+                steps, expectedSteps,
+                "步骤显示应该与实际投掷值匹配")
+        }
+    }
 }
 
 /// 扩展String，添加正则表达式匹配功能
